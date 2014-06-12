@@ -1,7 +1,7 @@
 function varargout = METAlab_GTG(varargin)
 
 % Author: Jeffrey M. Spielberg (jspielb2@gmail.com)
-% Version: Beta 0.25 (05.07.14)
+% Version: Beta 0.30 (06.10.14)
 % 
 % 
 % History:
@@ -29,6 +29,44 @@ function varargout = METAlab_GTG(varargin)
 %                        effects, 2) addition of k-coreness centrality 
 %                        testing, 3) addition of option to do detrending by
 %                        block for functional data in Stage 2
+% 06.10.14 - Beta 0.30 - 1) small bugfixes, 2) all properties previously 
+%                        calculated/tested for all weights simultaneously 
+%                        are now calculated/tested for each sign separately 
+%                        (modularity still calculated on entire matrix), 3)
+%                        clustering coefficient, local efficiency, matching
+%                        index, rich club, & transitivity added to full 
+%                        network calculations/testing, 4) participant 
+%                        coefficient & within-module z added to thresholded
+%                        calculations/testing, 5) calculation/testing of 
+%                        properties for negative weights in the thresholded
+%                        matrices is now automatic (to be consistent with 
+%                        fully connected matrices), 6) option added to 
+%                        calculate/test properties for absolute value of 
+%                        weights, 7) handles now used in all stages to 
+%                        pass information between functions (rather than 
+%                        via out, which was made global), allowing users to
+%                        launch processes from the same gui with less 
+%                        chance of info from the previous process 
+%                        interfering, 8) important change to the way in
+%                        which matrices are thresholded in Stage 3; the
+%                        previous version allowed the threshold to be
+%                        negative, which sometimes happened for higher
+%                        densities (this was a problem for negative weight
+%                        properties, but is unlikely to have affected
+%                        properties for positive weights); thus, when
+%                        calculating properties for negative weights,
+%                        sometime positive weights were also allowed in at
+%                        higher densities, which it more likely for 
+%                        properties for positive and negative weights to be
+%                        negatively correlated; now, only weights of the
+%                        appropriate sign are allowed in; as a consequence,
+%                        it is possible that the chosen maximum density 
+%                        cannot be reached (less likely for positive
+%                        weights, but is generally problematic for
+%                        'sparser' matrices; therefore, the maximum 
+%                        possible density is now calculated and, if smaller
+%                        than the requested density, used
+%
 % 
 % WARNING: This is a beta version. There no known bugs, but only limited 
 % testing has been performed. This software comes with no warranty (even 

@@ -1,7 +1,7 @@
 function varargout = METAlab_GTG_createconmats_GUI(varargin)
 
 % Author: Jeffrey M. Spielberg (jspielb2@gmail.com)
-% Version: Beta 0.25 (05.07.14)
+% Version: Beta 0.30 (06.10.14)
 % 
 % 
 % History:
@@ -10,6 +10,13 @@ function varargout = METAlab_GTG_createconmats_GUI(varargin)
 %                        for task fMRI
 % 05.07.14 - Beta 0.25 - 1) bug fixes, 2) addition of within-block
 %                        detrending for functional data
+% 06.10.14 - Beta 0.30 - 1) small bug fixes, 2) handles now used to pass 
+%                        information between functions (rather than via 
+%                        out, which was made global), allowing users to 
+%                        launch processes from the same gui with less 
+%                        chance of info from the previous process 
+%                        interfering
+%
 % 
 % WARNING: This is a beta version. There no known bugs, but only limited 
 % testing has been perfomed. This software comes with no warranty (even the
@@ -56,9 +63,9 @@ varargout{1} = handles.output;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Infile_edit_Callback(hObject, eventdata, handles) %#ok<*INUSD,*DEFNU>
-global out;
-temp = get(hObject,'String');
-out  = evalin('base',temp);
+temp         = get(hObject,'String');
+handles.out  = evalin('base',temp);
+guidata(hObject,handles);
 
 function Infile_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -76,8 +83,8 @@ uicontrol(handles.Infile_edit);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Outfile_edit_Callback(hObject, eventdata, handles)
-global out;
-out.outname = get(hObject,'String');
+handles.out.outname = get(hObject,'String');
+guidata(hObject,handles);
 
 function Outfile_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -85,9 +92,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function Outfile_pushbutton_Callback(hObject, eventdata, handles)
-global out;
-out.outname = [uigetdir(pwd,'Select the output directory'),'/'];
-set(handles.Outfile_edit,'String',out.outname);
+handles.out.outname = [uigetdir(pwd,'Select the output directory'),'/'];
+set(handles.Outfile_edit,'String',handles.out.outname);
+guidata(hObject,handles);
 
 
 
@@ -97,11 +104,10 @@ set(handles.Outfile_edit,'String',out.outname);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function FuncYN_popupmenu_Callback(hObject, eventdata, handles)
-global out;
-contents         = cellstr(get(hObject,'String'));
-out.div_by_block = contents{get(hObject,'Value')};
+contents                 = cellstr(get(hObject,'String'));
+handles.out.div_by_block = contents{get(hObject,'Value')};
 
-if strcmp(out.div_by_block,'Yes')
+if strcmp(handles.out.div_by_block,'Yes')
     set(handles.DivBlockTR_edit,'enable','on');
     set(handles.Detr_popupmenu,'enable','on');
     set(handles.FuncDes_edit,'enable','on');
@@ -112,6 +118,7 @@ else
     set(handles.FuncDes_edit,'enable','off');
     set(handles.FuncDes_pushbutton,'enable','off');
 end
+guidata(hObject,handles);
 
 function FuncYN_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -125,9 +132,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function DivBlockTR_edit_Callback(hObject, eventdata, handles)
-global out;
-temp   = get(hObject,'String');
-out.TR = evalin('base',temp);
+temp           = get(hObject,'String');
+handles.out.TR = evalin('base',temp);
+guidata(hObject,handles);
 
 function DivBlockTR_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -141,9 +148,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Detr_popupmenu_Callback(hObject, eventdata, handles)
-global out;
-temp   = get(hObject,'String');
-out.block_detr = evalin('base',temp);
+temp                   = get(hObject,'String');
+handles.out.block_detr = evalin('base',temp);
+guidata(hObject,handles);
 
 function Detr_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -157,10 +164,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function FuncDes_edit_Callback(hObject, eventdata, handles)
-global out;
-temp               = get(hObject,'String');
-out.block_info     = evalin('base',temp);
-out.num_conditions = length(out.block_info);
+temp                       = get(hObject,'String');
+handles.out.block_info     = evalin('base',temp);
+handles.out.num_conditions = length(handles.out.block_info);
+guidata(hObject,handles);
 
 function FuncDes_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -174,14 +181,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function FuncDes_pushbutton_Callback(hObject, eventdata, handles)
-global out;
-out.num_conditions = str2double(inputdlg('Enter the number of conditions','Conditions',2));
-for cond = 1:out.num_conditions
+handles.out.num_conditions = str2double(inputdlg('Enter the number of conditions','Conditions',2));
+for cond = 1:handles.out.num_conditions
     temp = inputdlg(['Enter the onset times (in seconds, separated by commas) of condition #',num2str(cond)],'Onsets',2);
-    out.block_info{cond,1}(1,:) = str2num(temp{:}); %#ok<*ST2NM>
+    handles.out.block_info{cond,1}(1,:) = str2num(temp{:}); %#ok<*ST2NM>
     temp = inputdlg(['Enter the block durations (in seconds, separated by commas) of condition #',num2str(cond)],'Durations',2);
-    out.block_info{cond,1}(2,:) = str2num(temp{:});
+    handles.out.block_info{cond,1}(2,:) = str2num(temp{:});
 end
+guidata(hObject,handles);
 
 
 
@@ -192,9 +199,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function ConnectType_popupmenu_Callback(hObject, eventdata, handles)
-global out;
-contents         = cellstr(get(hObject,'String'));
-out.connect_type = contents{get(hObject,'Value')};
+contents                 = cellstr(get(hObject,'String'));
+handles.out.connect_type = contents{get(hObject,'Value')};
+guidata(hObject,handles);
 
 function ConnectType_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -208,8 +215,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function MinTP_edit_Callback(hObject, eventdata, handles)
-global out;
-out.min_TP = str2double(get(hObject,'String'));
+handles.out.min_TP = str2double(get(hObject,'String'));
+guidata(hObject,handles);
 
 function MinTP_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -225,7 +232,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Start_pushbutton_Callback(hObject, eventdata, handles)
-global out;
+out = handles.out;
 
 % Check whether inputs have been specified
 if ~exist('out','var')
@@ -366,7 +373,7 @@ switch out.connect_type
         logfile_outname = [out.outname '_robustcorr_logfile.txt'];
 end
 logfile_fid = fopen(logfile_outname,'w');
-out.num_rep_levs = size(out.ts,2);
+out.num_rep_levs = size(out.ts,1);
 progressbar('Progress Calculating Connectivity Matrices')
 
 switch out.connect_type
@@ -379,7 +386,7 @@ switch out.connect_type
                 sub = num2str(out.subs(currsub));
             end
             for rep_lev = 1:out.num_rep_levs
-                currsub_ts = out.ts{currsub,rep_lev};
+                currsub_ts = squeeze(out.ts{rep_lev,currsub});
                 if size(currsub_ts,2) > 1
                     for rowvar = 1:out.nROI
                         rowts = currsub_ts(rowvar,:)';
@@ -437,7 +444,7 @@ switch out.connect_type
                 end
                 for rep_lev = 1:num_rep_levs
                     if size(ts{currsub},2) > 1
-                        currts  = ts{currsub,rep_lev};
+                        currts  = squeeze(ts{rep_lev,currsub});
                         usevols = sum(isnan(currts),1) == 0;
                         if sum(usevols) >= min_TP
                             outmats(:,:,currsub,rep_lev) = partialcorr(currts(:,usevols)');
@@ -459,7 +466,7 @@ switch out.connect_type
                 end
                 for rep_lev = 1:out.num_rep_levs
                     if size(out.ts{currsub},2) > 1
-                        currts  = out.ts{currsub,rep_lev};
+                        currts  = squeeze(out.ts{rep_lev,currsub});
                         usevols = sum(isnan(currts),1) == 0;
                         if sum(usevols) >= out.min_TP
                             outmats(:,:,currsub,rep_lev) = partialcorr(currts(:,usevols)');
@@ -485,7 +492,7 @@ switch out.connect_type
                 sub = num2str(out.subs(currsub));
             end
             for rep_lev = 1:out.num_rep_levs
-                currsub_ts = out.ts{currsub,rep_lev};
+                currsub_ts = squeeze(out.ts{rep_lev,currsub});
                 if size(currsub_ts,2) > 1
                     for rowvar = 1:out.nROI
                         rowts = currsub_ts(rowvar,:)';
@@ -535,7 +542,7 @@ switch out.connect_type
                 sub = num2str(out.subs(currsub));
             end
             for rep_lev = 1:out.num_rep_levs
-                currsub_ts = out.ts{currsub,rep_lev};
+                currsub_ts = squeeze(out.ts{rep_lev,currsub});
                 if size(currsub_ts,2) > 1
                     for rowvar = 1:out.nROI
                         rowts = currsub_ts(rowvar,:)';
@@ -588,5 +595,4 @@ fclose(logfile_fid);
 out.nonan = sum(squeeze(sum(isnan(sum(outmats,4)),1)),1)' == 0;
 out.allnan = sum(squeeze(sum(isnan(sum(outmats,4)),1)),1)' == out.nROI^2;
 out.conmats = outmats;
-
 save(mat_outname,'out');

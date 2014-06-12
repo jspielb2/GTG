@@ -1,7 +1,7 @@
-{\rtf1\ansi\ansicpg1252\cocoartf1187\cocoasubrtf400
-\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 Georgia;\f1\fnil\fcharset0 Cambria;}
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf360
+{\fonttbl\f0\fnil\fcharset0 Georgia;\f1\fnil\fcharset0 Cambria;}
 {\colortbl;\red255\green255\blue255;}
-\margl1440\margr1440\vieww25600\viewh25640\viewkind1\viewscale200
+\margl1440\margr1440\vieww50900\viewh25800\viewkind1\viewscale200
 \deftab720
 \pard\pardeftab720\ri0\qc
 
@@ -12,7 +12,7 @@
 \pard\pardeftab720\ri0
 
 \i \cf0 Author: Jeffrey M. Spielberg (jspielb2@gmail.com)\
-Current version: Beta 0.25 (05.07.14)\
+Current version: Beta 0.30 (06.10.14)\
 \
 WARNING: This is a beta version. There no known bugs, but only limited testing has been performed. This software comes with no warranty (even the implied warranty of merchantability or fitness for a particular purpose). Therefore, USE AT YOUR OWN RISK!!!\
 Copyleft 2014. Software can be modified and redistributed, but modified, redistributed versions must have the same rights\
@@ -31,8 +31,8 @@ Copyleft 2014. Software can be modified and redistributed, but modified, redistr
 The toolbox also provides a data (pre)processing path for resting state and (block design) task fMRI data. Several options for partialing nuisance signals are included (particularly relevant for resting analyses), including local and total white matter signal (Jo et al., 2013), calculation of Saad et al. (2013)'s GCOR, and the use of Chen et al. (2012)\'92s GNI method to determine whether global signal partialing is needed. In addition, Power et al. (2014)'s motion scrubbing method is available. \
 \
 For task fMRI, the toolbox will compute connectivity matrices for each user-specified condition by dividing up the timeseries. In order to compensate for HDR-related delay, the timeseries is deconvolved (using SPM's method), allowing the timeseries to be divided at the actual onset/offset times. Therefore, this method will likely not work for fast event-related designs and may or may not work for slow event-related designs. 
-\i Even with a block design, extra caution should be used with this method, because we explored the method only minimally.
-\i0  However, several in house tests show that using this method produces similar findings to simply assuming a 2-second delay and dividing the timeseries without deconvolution, indicating that the deconvolution process is not introducing any major distortion. \
+\i Even with a block design, extra caution should be used with this method, because we have explored the method only minimally.
+\i0  In-house testing shows that this method produces similar findings to simply assuming a 2-second delay and dividing the timeseries without deconvolution, indicating that the deconvolution process is not introducing any major distortion. \
 \
 \
 \
@@ -54,7 +54,7 @@ For task fMRI, the toolbox will compute connectivity matrices for each user-spec
 \
 The toolbox will detect whether you have the Parallel Computing Toolbox (PCT), and use it, if so. \
 \
-The toolbox can be fairly RAM intensive for large numbers of nodes, particularly when using the PCT. A minimum of 2GB of RAM is necessary, with significantly more being desirable if using the PCT. Given that these analyses are highly parallel, using PCT on a multi-core machine is highly desirable. \
+The toolbox can be fairly RAM intensive for large numbers of nodes (>150), particularly when using PCT. A minimum of 2GB of RAM is necessary, with significantly more being desirable if using PCT with a large # of nodes. Given that these analyses are highly parallel, using PCT on a multi-core machine is highly desirable. \
 \
 \
 \
@@ -139,7 +139,7 @@ Options (in order of implementation):\
 \cf0 a.  Three possible filters\
 \pard\pardeftab720\li1440\ri0
 \cf0 i.  \'91Ideal\'92 filter (based on the filter used in REST v. 1.8). This filter achieves complete precision (of cutoff frequency) in the frequency domain at the expense of inducing oscillation in the time domain.\
-ii.  Butterworth filter. This filter induces less oscillation in the time domain than the \'91ideal\'92 filter at the expense of a less steep frequency cutoff.\
+ii.  Butterworth filter. This filter induces less oscillation in the time domain than the \'91ideal\'92 filter at the expense of a shallower frequency cutoff.\
 iii.  FSL\'92s nonlinear highpass & Gaussian linear lowpass filter. The non-linearity of the highpass filter may be useful, because non-Gaussianity in lower frequencies may be useful in determining causal direction (Mumford & Ramsey, 2014). \
 \pard\pardeftab720\ri0
 \cf0 \
@@ -150,11 +150,11 @@ iii.  FSL\'92s nonlinear highpass & Gaussian linear lowpass filter. The non-line
 \cf0 i.  Original 6 parameters.\
 ii.  t - 1 parameters (a la Friston\'92s autoregressive method).\
 iii.  Squared parameters.\
-iv.  1\super st\nosupersub  derivative (2\super nd\nosupersub  order) of parameters.\
+iv.  1st derivative (2nd order) of parameters.\
 \pard\pardeftab720\fi720\ri0
 \cf0 b.  Global signal:\
 \pard\pardeftab720\li720\fi720\ri0
-\cf0 i.  1\super st\nosupersub  derivative of signal.\
+\cf0 i.  1st derivative of signal.\
 \pard\pardeftab720\li1440\ri0
 \cf0 ii.  Given the controversy surrounding partialing of global signal, two further options are available: \
 \pard\pardeftab720\li1440\fi720\ri0
@@ -170,11 +170,11 @@ iv.  1\super st\nosupersub  derivative (2\super nd\nosupersub  order) of paramet
 \pard\pardeftab720\li1440\ri0
 \cf0 i.  Default is to extract the signal from the entire white matter mask. However, Jo et al. (2013) suggest that extracting signal from local white matter (i.e., white matter within a 45mm sphere around the current voxel of interest) may help to reduce distance-dependent artifact induced by partialing of the global signal. \
 \pard\pardeftab720\li720\fi720\ri0
-\cf0 ii.  1\super st\nosupersub  derivative of signal.\
+\cf0 ii.  1st derivative of signal.\
 \pard\pardeftab720\fi720\ri0
 \cf0 d.  Ventricular signal:\
 \pard\pardeftab720\li720\fi720\ri0
-\cf0 i.  1\super st\nosupersub  derivative of signal.\
+\cf0 i.  1st derivative of signal.\
 \pard\pardeftab720\ri0
 \cf0 \
 \
@@ -197,12 +197,12 @@ iv.  1\super st\nosupersub  derivative (2\super nd\nosupersub  order) of paramet
 \i\fs28 \cf0 Stage 2 \'96 Creation of Connectivity Matrices:\
 \pard\pardeftab720\ri0
 
-\i0\fs24 \cf0 This GUI accepts the output from Stage 1, performs deconvolution/division by condition if selected (detrending within block can be done performed), and creates connectivity matrices (one per participant/repeated condition). Four measures of association can be used:\
+\i0\fs24 \cf0 This GUI accepts output from Stage 1, performs deconvolution/division by condition if selected (detrending within block can be done performed), and creates connectivity matrices (one per participant/repeated condition). Four measures of association can be used:\
 \pard\pardeftab720\fi720\ri0
 \cf0 1.  Pearson correlation\
 2.  Partial correlation\
 \pard\pardeftab720\li1440\ri0
-\cf0 a.  Thought to reflect direct effect to a greater degree, but much less useful in datasets with a very large # of nodes (given the large percentage of variance removed)\
+\cf0 a.  Thought to reflect direct effects to a greater degree, but much less useful in datasets with a very large # of nodes (given the large percentage of variance removed)\
 \pard\pardeftab720\fi720\ri0
 \cf0 3.  Mutual information\
 \pard\pardeftab720\li720\fi720\ri0
@@ -230,11 +230,21 @@ iv.  1\super st\nosupersub  derivative (2\super nd\nosupersub  order) of paramet
 
 \i0\fs24 \cf0 This stage takes connectivity matrices as input (e.g., output from Stage 2), and calculates graph theoretic properties for each participant/repeated level (to be used as dependent variables in Stage 4). \
 \
-This stage computes properties for fully-connected and/or thresholded networks. For thresholded networks, the toolbox computes properties across a set of density thresholds. The user specifies the maximum threshold (a value of 0.5-0.6 is recommended) and the density step, and the toolbox computes the minimum density. \
+This stage requires that entries in the connectivity matrices represent connectivity strength, but it does not care what measure of connectivity was used. In other words, entries could be Pearson correlations (e.g., output from Stage 2) or white matter tract strength (e.g., obtained from diffusion tractography). Therefore, entries do not necessarily have to conform to a specific scale. HOWEVER, some properties (e.g., local efficiency) will be calculated incorrectly if entries exceed 1 (or -1). Therefore, if your connectivity matrices have entries greater than 1 (or < -1), you likely want to rescale them, though ensuring to keep the 0 point (i.e., do not z-score, which will change the 0 point). This can be done by dividing all entries (across participants) by the maximum absolute value in the data or the maximum possible value (e.g., if your measure of strength has a potential max of 2, you would divide by 2 instead of the actual max in your data, in order to preserve the actual potential range). \
+\
+This stage computes properties for fully-connected and/or thresholded networks. For thresholded networks, the toolbox computes properties across a set of density thresholds. The user specifies the maximum density (a value of 0.5-0.6 is recommended) and the density step, and the toolbox computes the minimum density. When matrices are 'sparser', it is possible that the specified maximum density cannot be reached. In this case, the toolbox will use the maximum possible density. Therefore, be sure to check the actual maximum density reached (i.e., out.max_dens_pos, out.max_dens_neg). This is much more likely to occur for negative weights in resting data. \
+\
+The minimum density is chosen such that, at the very least, the presence of disconnected networks is not highly correlated with variables of interest (e.g., IVs in Stage 4). Therefore, this computation takes into account variables specified by the user and creates groups of participants by stratifying (e.g., high, medium, low) these variables. Mean networks are created for each (stratified) group, and the minimum density at which the (group mean) network remains connected is identified. This is done for each group (across each variable, and across all selected variables) and for the overall mean network. Then, the maximum of these minima is chosen as the overall minimum density.\
 \
 After each property is computed (for each threshold), a standardized area under the curve (AUC) is computed for each property, creating one value per property, per participant (or one value for each node/edge, for node/edge specific measures). \
 \
-The minimum density is chosen such that, at the very least, the presence of disconnected networks is not highly correlated with variables of interest (e.g., IVs in Stage 4). Therefore, this computation takes into account variables specified by the user and creates groups of participants by stratifying (e.g., high, medium, low) these variables. Mean networks are created for each (stratified) group, and the minimum density at which the (mean) network remains connected is computed. This is done for each group (across each variable, and across all selected variables) and for the overall mean network. Then, the maximum of these minima is chosen as the overall minimum density.\
+For both fully connected and thresholded networks, properties will be automatically calculated for positive and negative weights separately (only positive, if absolute value is used). However, it is often the case that an appropriate minimum density cannot be found for negative weights in thresholded matrices, in which case these properties will not be computed. \
+\
+\pard\pardeftab720\ri0
+
+\f1 \cf0 \ul \ulc0 IMPORTANT: Property values for negative weights are calculated by reversing the sign of the matrices and then treating them the same as the original matrices.  Therefore, you should flip the signs for betas and t-vals from statistics calculated with these values when interpreting these findings. 
+\f0 \ulnone \
+\
 \
 \pard\pardeftab720\ri0
 
@@ -245,8 +255,8 @@ The minimum density is chosen such that, at the very least, the presence of disc
 \pard\pardeftab720\fi720\ri0
 \cf0 a.  1 matrix per repeated level, per participant.\
 \pard\pardeftab720\li720\ri0
-\cf0 b.  NOTE: these matrices can have been created in any program and do not have to correspond to resting-state fMRI (e.g., can be DTI fiber strength).\
-c.  If repeated measures tests are desired in stage 4, the repeated measure should be indexed in the fourth dimension. For example, for 3 repeated levels, 10 participants, and 30 ROIs, the dimensions of the input matrix should be 30 x 30 x 10 x 3. In this stage (3), each level of the repeated factor will be treated independently. Note, Stage 4 uses polynomial contrasts, so arrange the levels of the repeated measure accordingly. \
+\cf0 b.  NOTE: these matrices can have been created in any program and do not have to correspond to resting-state fMRI (e.g., can be diffusion fiber strength).\
+c.  If repeated-measures tests are desired in stage 4, the repeated measure should be indexed in the fourth dimension. For example, for 3 repeated levels, 10 participants, and 30 ROIs, the dimensions of the input matrix should be 30 x 30 x 10 x 3. In this stage (3), each level of the repeated factor will be treated independently. Note, Stage 4 uses polynomial contrasts, so arrange the levels of the repeated measure accordingly. \
 \pard\pardeftab720\ri0
 \cf0 \
 Cell array containing a label for each ROI\
@@ -272,16 +282,13 @@ Options:\
 \cf0 a.  The stratified groups can be created using either the original variables or variables that have had the variance associated with the other specified variables (and any covariates) partialed out.\
 b.  The reason to use partialed variables is because this is the variance that will actually be tested in the GLMs in Stage 4. \
 \pard\pardeftab720\ri0
-\cf0 3.  Calculate Negative Weight Properties:\
+\cf0 3.  Calculate Properties for Absolute Value of Weights:\
 \pard\pardeftab720\li720\ri0
-\cf0 a.  By default, thresholding will be done for positive weights, ignoring negative weights. Therefore, the user can specify to also test negative weights. However, it is often the case that an appropriate minimum density cannot be found, in which case properties for negative weights will not be computed. \
+\cf0 a.  By default, properties will be calculated for positive and negative weights separately. However, the user can specify to calculate properties based on the absolute value of network weights, if only the strength of the relationship is of interest. \
 \pard\pardeftab720\ri0
-
-\f1 \cf0 \ul \ulc0 	IMPORTANT: Property values for negative weights from thresholded matrices are 		calculated by reversing the sign of the matrices and then treating them the same as 	the original matrices.  Therefore, you should flip the signs for betas and t-vals from 		statistics calculated with these values when interpreting these findings. 
-\f0 \ulnone \
-4.  Number of Runs for Modularity:\
+\cf0 4.  Number of Runs for Modularity:\
 \pard\pardeftab720\li720\ri0
-\cf0 a.  Some properties for fully connected matrices require a modular structure, which is computed based on the overall mean network (using the Louvain algorithm initially and then the Fine-tuning algorithm, both from the Brain Connectivity Toolbox, of course). Because the modularity calculation is not deterministic (i.e., it depends on the initial start values), this computation is repeated and the organization that maximizes modularity is chosen. Therefore, this value specifies the number of repeated runs (this process is fairly quick, so a large value [5,000-10,000] is recommended). \
+\cf0 a.  Some properties require a modular structure, which is computed based on the overall mean network (using the Louvain algorithm initially and then the Fine-tuning algorithm, both from the Brain Connectivity Toolbox). Because modularity calculation is not deterministic (i.e., it depends on the initial start values), this computation is repeated and the organization that maximizes modularity is chosen. Therefore, this value specifies the number of repeated runs (this process is fairly quick, so a large value [5,000-10,000] is recommended). \
 \pard\pardeftab720\ri0
 \cf0 5.  Calculate Max Club Size:\
 \pard\pardeftab720\li720\ri0
@@ -349,7 +356,7 @@ Because several of the measures computed at this stage are node or edge specific
 
 \f1 \cf0 \
 \pard\pardeftab720\ri0
-\cf0 \ul IMPORTANT: Property values for negative weights from thresholded matrices are calculated by reversing the sign of the matrices and then treating them the same as the original matrices.  Therefore, you should flip the signs for betas and t-vals for tests of negative weights when interpreting these findings. \ulnone \
+\cf0 \ul \ulc0 IMPORTANT: Property values for negative weights are calculated by reversing the sign of the matrices and then treating them the same as the original matrices.  Therefore, you should flip the signs for betas and t-vals for tests of negative weights when interpreting these findings. \ulnone \
 \
 \pard\pardeftab720\ri0
 
@@ -415,166 +422,153 @@ Measures: \ul Degree, (Density for Influence), Diversity Coefficient, Edge Betwe
 Network vulnerability to insult. \
 Measures: \ul Assortativity\ulnone . \
 \
-\
 \pard\pardeftab720\ri0
 
 \b \cf0 Measures
 \b0 :\
 \pard\pardeftab720\ri0
-\cf0 \ul Assortativity\ulnone : \
+\cf0 \ul \ulc0 Assortativity\super \ulnone \'87\nosupersub : \
 The correlation between degrees of all nodes on two opposite ends of a link. A measure of 
 \i resilience
 \i0 . Positive values reflect greater resilience. \
-Computed for both fully connected and thresholded networks. \
 One value is produced for the entire network. \
 \
 \ul Characteristic Path Length (CPL)\ulnone : \
 The average shortest path between all pairs of nodes. More influenced by shorter paths. A measure of 
 \i functional integration
 \i0 . Higher values reflect less integration. \
-Computed for both fully connected and thresholded networks. \
 One value is produced for the entire network. \
-\
 \ul Clustering Coefficient\ulnone : \
 The fraction of triangles around a node. A measure of 
 \i functional segregation
 \i0 . Higher values reflect more clustered connectivity. \
-Computed for thresholded networks.\
 One value is produced for each node. \
 \
 \ul Degree\ulnone : \
 The number of neighbors (edges) of a node. A measure of 
 \i centrality
 \i0 . Reflects the general importance of a node. Higher values reflect greater importance. \
-Computed for thresholded networks. \
+Computed only for thresholded networks. \
 One value is produced for each node. \
 \
 \ul Density\ulnone : \
-The fraction of present connections to possible connections. Similar to the mean degree for all nodes in the network. A measure of 
+Fraction of present connections to possible connections. Similar to the mean degree of all nodes in the network. A measure of 
 \i influence
 \i0  (
 \i centrality
-\i0  on a network scale). Reflects the total \'93wiring cost\'94 of the network. Higher values reflect more interconnected networks. \
-Computed for thresholded networks.\
+\i0  on a network scale). Reflects the total \'93wiring cost\'94 of network. Higher values reflect more interconnected networks. \
+Computed only for thresholded networks.\
 One value is produced for the entire network. \
 \
 \ul Diversity Coefficient\ulnone : \
 Measures the diversity of intermodular connections (the variance of the weights of edges connected to a node). A measure of 
 \i centrality
 \i0 . Higher values reflect greater diversity. \
-Computed for fully connected networks.\
-Two outputs, each with one value per node. \
+Computed only for fully connected networks.\
+One value is produced per node. \
 \
 \ul Edge Betweeness Centrality\super \'86\nosupersub \ulnone : \
 The fraction of all the shortest paths in a network that pass through a given edge. A measure of 
 \i centrality
 \i0 . Higher values suggest that an edge is more important for controlling information flow. \
-Computed for both fully connected and thresholded networks. \
 One value is produced for each edge.\
 \
 \ul Eigenvector Centrality:\
 \pard\pardeftab720\ri0
 \cf0 \ulnone The corresponding element of the eigenvector with the largest eigenvalue. A measure of 
 \i centrality
-\i0 . Higher values suggest that a node is connected to other nodes with high eigenvector centrality. I more reflective of the global (vs. local) prominence of a node. Computed for both fully connected and thresholded networks. \
-One value is produced for each node.\ul \
-\
+\i0 . Higher values suggest that a node is connected to other nodes with high eigenvector centrality. I more reflective of the global (vs. local) prominence of a node. One value is produced for each node.\ul \
 \
 Global Efficiency\ulnone : \
 The average inverse shortest path between all pairs of nodes. More influenced by longer paths. A measure of 
 \i functional integration
 \i0 . Higher values reflect greater integration. \
-Computed for both fully connected and thresholded networks. \
 One value is produced for the entire network. \
 \
 \pard\pardeftab720\ri0
-\cf0 \ul K-Coreness Centrality:\ulnone \
+\cf0 \ul \ulc0 K-Coreness Centrality:\ulnone \
 A k-core if the largest subgraph comprising nodes of at least k degree, and the k-coreness of a node is k if the node belongs to the k-core but not the (k+1)-core. A measure of 
 \i centrality
 \i0 . Higher values reflect greater connectivity to more connected nodes/membership in a relatively more influential network. \
-Computed for thresholded networks. \
+Computed only for thresholded networks. \
 One value is produced for each node
 \i \
 \pard\pardeftab720\ri0
 
 \i0 \cf0 \
 \pard\pardeftab720\ri0
-\cf0 \ul Local Efficiency\super \'a7\nosupersub \ulnone : \
+\cf0 \ul \ulc0 Local Efficiency\ulnone : \
 The average inverse shortest path for neighbors of a node. Reflects the efficiency of communication among neighbors when a node is removed. A measure of 
 \i functional segregation
 \i0 . Higher values reflect greater communication. \
-Computed for thresholded networks.\
 One value is produced for each node. \
 \
 \ul Matching Index\super \'86\nosupersub \ulnone : \
 A measure of the similarity between two nodes' connectivity profiles. Higher values reflect greater similarity. \
-Computed for thresholded networks. \
 One value is produced for each pair of nodes.\
 \
 \ul Node Betweeness Centrality\ulnone : \
 The fraction of all the shortest paths in a network that pass through a node. A measure of 
 \i centrality
 \i0 . Higher values suggest that a node is more important for controlling information flow. \
-Computed for both fully connected and thresholded networks. \
 One value is produced for each node. \
 \
 \ul Node Strength\ulnone : \
 The sum of the weights connected to a node (the mean across the network is also computed). A measure of 
 \i centrality
 \i0 . Higher and lower values reflect greater centrality of a node for positive and negative edges, respectively. \
-Computed for fully connected networks.\
-Four outputs, two have one value per node, two describe entire network. \
+Computed only for fully connected networks.\
+Two outputs, one has one value per node, one describes entire network. \
 \
 \ul Pagerank Centrality:\
 \pard\pardeftab720\ri0
 \cf0 \ulnone Similar to eigenvector centrality. A measure of 
 \i centrality
-\i0 . Higher values suggest greater centrality. Is more reflective of the global (vs. local) prominence of a node. Computed for both fully connected and thresholded networks. \
+\i0 . Higher values suggest greater centrality. Is more reflective of the global (vs. local) prominence of a node. \
 One value is produced for each node.\
 \
 \pard\pardeftab720\ri0
-\cf0 \ul Participation Coefficient\ulnone : \
+\cf0 \ul \ulc0 Participation Coefficient\ulnone : \
 The extent to which a node is connected with nodes outside its module. A measure of 
 \i centrality
 \i0 . Higher values reflect more between module connectivity. Nodes with a high within module degree z-score but a low participation coefficient are known as provincial hubs and play an important part in facilitating modular segregation. Nodes with both a high within module degree z-score and a high participation coefficient are known as connector hubs and facilitate intermodular communication.\
-Computed for fully connected networks.\
-Two outputs, each with one value per node.\
+One value is produced for each node.\
 \
-\ul Rich Club Networks\ulnone : \
+\ul Rich Club Networks\super \ulnone \'87\nosupersub : \
 Reflects the degree to which network hubs tend to be more densely connected among themselves than nodes of a lower degree. \
-Computed for thresholded networks.\
 One value is produced for each degree size (up to the maximum degree). \
-\
-\ul Small Worldness\super \'a7\nosupersub \ulnone :\
+\pard\pardeftab720\ri0\ql\qnatural
+\cf0 \
+\pard\pardeftab720\ri0
+\cf0 \ul \ulc0 Small Worldness\ulnone :\
 The ratio of clustering coefficient to path length (each normalized by random networks). \
 Higher values reflect more small worldness, and networks high in small worldness have both high integration and segregation. \
-Computed for thresholded networks.\
+Computed only for thresholded networks.\
 One value is produced for the entire network.\
 \
 \ul Subgraph Centrality\ulnone : \
 A weighted sum of the closed walks of different lengths in the network starting and ending at the node. Reflects the extent to which a node participates in subgraphs. A measure of 
 \i centrality
 \i0 . Higher values reflect greater centrality.\
-Computed for thresholded networks.\
+Computed only for thresholded networks.\
 One value is produced for each node. \
 \
 \ul Transitivity\ulnone : \
 The (normalized) mean clustering coefficient. A measure of 
 \i functional segregation
 \i0 . Higher values reflect more clustered connectivity.\
-Computed for thresholded networks.\
 One value is produced for the entire network. \
 \
 \ul Within-Module Degree Z-Score\ulnone : \
 The extent to which a node is connected to other nodes in its module. A measure of 
 \i centrality
 \i0 . Higher values reflect more within module connectivity. Nodes with a high within module degree z-score but a low participation coefficient are known as provincial hubs and play an important part in facilitating modular segregation. Nodes with both a high within module degree z-score and a low participation coefficient are known as connector hubs and facilitate intermodular communication. \
-Computed for fully connected networks.\
 One value is produced for each node.  \
 \
-\
+\pard\pardeftab720\ri0\ql\qnatural
+\cf0 \super \'87\nosupersub Calculating this measure depends on the presence of (at least some) zeros; thus, it  cannot be calculated when there is non-zero value for all entries of the connectivity matrix; therefore, calculation of this property is automatically turned off when using the absolute value of weights for fully connected matrices\
 \
 \pard\pardeftab720\ri0
 \cf0 \super \'86\nosupersub Because a value is produced for each edge, the number of values produced can be quite large and computing/testing can be time consuming.\
 \super \
-\'a7\nosupersub These measures are relatively time consuming to compute.}
+}

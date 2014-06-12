@@ -1,18 +1,25 @@
 function varargout = METAlab_GTG_preprocess_GUI(varargin)
 
 % Author: Jeffrey M. Spielberg (jspielb2@gmail.com)
-% Version: Beta 0.25 (05.07.14)
+% Version: Beta 0.30 (06.10.14)
 % 
 % 
 % History:
 % 02.27.14 - Beta 0.13 - initial public release
 % 03.11.14 - Beta 0.20 - 1) small bugfixes, 2) major overhaul of user 
 %                        interface into GUIs
-% 03.17.14 - Beta 0.21 - 1) small bugfixes
-% 03.24.14 - Beta 0.22 - 1) lots of small bugfixes
+% 03.17.14 - Beta 0.21 - small bugfixes
+% 03.24.14 - Beta 0.22 - lots of small bugfixes
 % 04.08.14 - Beta 0.23 - small bugfixes
 % 04.23.14 - Beta 0.24 - no changes to this stage
 % 05.07.14 - Beta 0.25 - no changes to this stage
+% 06.10.14 - Beta 0.30 - 1) small bugfixes, 2) handles now used to pass 
+%                        information between functions (rather than via 
+%                        out, which was made global), allowing users to 
+%                        launch processes from the same gui with less 
+%                        chance of info from the previous process 
+%                        interfering
+%
 %
 % WARNING: This is a beta version. There no known bugs, but only limited 
 % testing has been perfomed. This software comes with no warranty (even the
@@ -60,15 +67,15 @@ varargout{1} = handles.output;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function IDs_edit_Callback(hObject, eventdata, handles) %#ok<*DEFNU,*INUSD>
-global out;
 temp     = get(hObject,'String');
-out.subs = evalin('base',temp);
-if size(out.subs,1) < size(out.subs,2)
-    out.subs = out.subs';
+handles.out.subs = evalin('base',temp);
+if size(handles.out.subs,1) < size(handles.out.subs,2)
+    handles.out.subs = handles.out.subs';
 end
-if ismatrix(out.subs)
-    out.subs = strtrim(cellstr(num2str(out.subs)));
+if ~iscell(handles.out.subs)
+    handles.out.subs = strtrim(cellstr(num2str(handles.out.subs)));
 end
+guidata(hObject,handles);
 
 function IDs_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -86,10 +93,10 @@ uicontrol(handles.IDs_edit);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function ROIlab_edit_Callback(hObject, eventdata, handles)
-global out;
 temp           = get(hObject,'String');
-out.ROI_labels = evalin('base',temp);
-out.nROI       = length(out.ROI_labels);
+handles.out.ROI_labels = evalin('base',temp);
+handles.out.nROI       = length(handles.out.ROI_labels);
+guidata(hObject,handles);
 
 function ROIlab_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -105,8 +112,8 @@ function ROIlab_edit_ButtonDownFcn(hObject, eventdata, handles)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Outfile_edit_Callback(hObject, eventdata, handles)
-global out;
-out.outname = get(hObject,'String');
+handles.out.outname = get(hObject,'String');
+guidata(hObject,handles);
 
 function Outfile_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -114,17 +121,19 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function Outfile_pushbutton_Callback(hObject, eventdata, handles) %#ok<*INUSL>
-global out;
-out.outname = [uigetdir(pwd,'Select the output directory'),'/'];
-set(handles.Outfile_edit,'String',out.outname);
+handles.out.outname = [uigetdir(pwd,'Select the output directory'),'/'];
+set(handles.Outfile_edit,'String',handles.out.outname);
+guidata(hObject,handles);
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function nTP_edit_Callback(hObject, eventdata, handles)
-global out;
-out.nTP = str2double(get(hObject,'String'));
+handles.out.nTP = str2double(get(hObject,'String'));
+guidata(hObject,handles);
 
 function nTP_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -138,8 +147,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function TR_edit_Callback(hObject, eventdata, handles)
-global out;
-out.TR = str2double(get(hObject,'String'));
+handles.out.TR = str2double(get(hObject,'String'));
+guidata(hObject,handles);
 
 function TR_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -153,9 +162,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Saveintermed_popupmenu_Callback(hObject, eventdata, handles)
-global out;
 contents = cellstr(get(hObject,'String'));
-out.saveintermed = contents{get(hObject,'Value')};
+handles.out.saveintermed = contents{get(hObject,'Value')};
+guidata(hObject,handles);
 
 function Saveintermed_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -171,8 +180,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Funcfile_edit_Callback(hObject, eventdata, handles)
-global out;
-out.func_first_filename = get(hObject,'String');
+handles.out.func_first_filename = get(hObject,'String');
+guidata(hObject,handles);
 
 function Funcfile_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -180,10 +189,10 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function Funcfile_pushbutton_Callback(hObject, eventdata, handles)
-global out;
 [file,path]             = uigetfile('*.nii.gz','Select the 4d EPI for the first participant');
-out.func_first_filename = [path,file];
-set(handles.Funcfile_edit,'String',out.func_first_filename);
+handles.out.func_first_filename = [path,file];
+set(handles.Funcfile_edit,'String',handles.out.func_first_filename);
+guidata(hObject,handles);
 
 
 
@@ -192,14 +201,14 @@ set(handles.Funcfile_edit,'String',out.func_first_filename);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Funcmaskfile_pushbutton_Callback(hObject, eventdata, handles)
-global out;
 [file,path]                 = uigetfile('*.nii.gz','Select the 3d functional brain mask (used to limit the voxels included) for the first participant');
-out.first_funcmask_filename = [path,file];
-set(handles.Funcmaskfile_edit,'String',out.first_funcmask_filename);
+handles.out.first_funcmask_filename = [path,file];
+set(handles.Funcmaskfile_edit,'String',handles.out.first_funcmask_filename);
+guidata(hObject,handles);
 
 function Funcmaskfile_edit_Callback(hObject, eventdata, handles)
-global out;
-out.first_funcmask_filename = get(hObject,'String');
+handles.out.first_funcmask_filename = get(hObject,'String');
+guidata(hObject,handles);
 
 function Funcmaskfile_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -213,8 +222,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function ROImaskfile_edit_Callback(hObject, eventdata, handles)
-global out;
-out.first_parc_filename = get(hObject,'String');
+handles.out.first_parc_filename = get(hObject,'String');
+guidata(hObject,handles);
 
 function ROImaskfile_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -222,15 +231,15 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function ROImaskfile_pushbutton_Callback(hObject, eventdata, handles)
-global out;
 [file,path]             = uigetfile('*.nii.gz','Select the 3d image containing ROI masks for the first participant');
-out.first_parc_filename = [path,file];
-set(handles.ROImaskfile_edit,'String',out.first_parc_filename);
+handles.out.first_parc_filename = [path,file];
+set(handles.ROImaskfile_edit,'String',handles.out.first_parc_filename);
+guidata(hObject,handles);
 
 function ROImaskspace_popupmenu_Callback(hObject, eventdata, handles)
-global out;
 contents       = cellstr(get(hObject,'String'));
-out.parc_space = contents{get(hObject,'Value')};
+handles.out.parc_space = contents{get(hObject,'Value')};
+guidata(hObject,handles);
 
 function ROImaskspace_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -244,8 +253,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function WMmaskfile_edit_Callback(hObject, eventdata, handles)
-global out;
-out.first_WM_filename = get(hObject,'String');
+handles.out.first_WM_filename = get(hObject,'String');
+guidata(hObject,handles);
 
 function WMmaskfile_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -253,15 +262,15 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function WMmaskfile_pushbutton_Callback(hObject, eventdata, handles)
-global out;
 [file,path]           = uigetfile('*.nii.gz','Select the white matter mask for the first participant');
-out.first_WM_filename = [path,file];
-set(handles.WMmaskfile_edit,'String',out.first_WM_filename);
+handles.out.first_WM_filename = [path,file];
+set(handles.WMmaskfile_edit,'String',handles.out.first_WM_filename);
+guidata(hObject,handles);
 
 function WMmaskspace_popupmenu_Callback(hObject, eventdata, handles)
-global out;
-contents     = cellstr(get(hObject,'String'));
-out.WM_space = contents{get(hObject,'Value')};
+contents             = cellstr(get(hObject,'String'));
+handles.out.WM_space = contents{get(hObject,'Value')};
+guidata(hObject,handles);
 
 function WMmaskspace_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -275,8 +284,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Ventmaskfile_edit_Callback(hObject, eventdata, handles)
-global out;
-out.first_vent_filename = get(hObject,'String');
+handles.out.first_vent_filename = get(hObject,'String');
+guidata(hObject,handles);
 
 function Ventmaskfile_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -284,15 +293,15 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function Ventmaskfile_pushbutton_Callback(hObject, eventdata, handles)
-global out;
 [file,path]             = uigetfile('*.nii.gz','Select the ventricular mask for the first participant');
-out.first_vent_filename = [path,file];
-set(handles.Ventmaskfile_edit,'String',out.first_vent_filename);
+handles.out.first_vent_filename = [path,file];
+set(handles.Ventmaskfile_edit,'String',handles.out.first_vent_filename);
+guidata(hObject,handles);
 
 function Ventmaskspace_popupmenu_Callback(hObject, eventdata, handles)
-global out;
 contents       = cellstr(get(hObject,'String'));
-out.vent_space = contents{get(hObject,'Value')};
+handles.out.vent_space = contents{get(hObject,'Value')};
+guidata(hObject,handles);
 
 function Ventmaskspace_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -308,19 +317,19 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function ST_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.ST_correct = get(hObject,'Value');
+handles.out.ST_correct = get(hObject,'Value');
 
-if out.ST_correct     == 1
+if handles.out.ST_correct     == 1
     set(handles.STord_popupmenu,'enable','on');
-elseif out.ST_correct == 0
+elseif handles.out.ST_correct == 0
     set(handles.STord_popupmenu,'enable','off');
 end
+guidata(hObject,handles);
 
 function STord_popupmenu_Callback(hObject, eventdata, handles)
-global out;
 contents   = cellstr(get(hObject,'String'));
-out.ST_ord = contents{get(hObject,'Value')};
+handles.out.ST_ord = contents{get(hObject,'Value')};
+guidata(hObject,handles);
 
 function STord_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -334,19 +343,19 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Detr_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.detr = get(hObject,'Value');
+handles.out.detr = get(hObject,'Value');
 
-if out.detr     == 1
+if handles.out.detr     == 1
     set(handles.Detrord_popupmenu,'enable','on');
-elseif out.detr == 0
+elseif handles.out.detr == 0
     set(handles.Detrord_popupmenu,'enable','off');
 end
+guidata(hObject,handles);
 
 function Detrord_popupmenu_Callback(hObject, eventdata, handles)
-global out;
 contents     = cellstr(get(hObject,'String'));
-out.detr_ord = str2double(contents{get(hObject,'Value')});
+handles.out.detr_ord = str2double(contents{get(hObject,'Value')});
+guidata(hObject,handles);
 
 function Detrord_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -360,29 +369,29 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function BP_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.BP = get(hObject,'Value');
+handles.out.BP = get(hObject,'Value');
 
-if out.BP     == 1
+if handles.out.BP     == 1
     set(handles.BPtype_popupmenu,'enable','on');
     set(handles.BP_HP_edit,'enable','on');
     set(handles.BP_LP_edit,'enable','on');
-elseif out.BP == 0
+elseif handles.out.BP == 0
     set(handles.BPtype_popupmenu,'enable','off');
     set(handles.BP_HP_edit,'enable','off');
     set(handles.BP_LP_edit,'enable','off');
 end
+guidata(hObject,handles);
 
 function BPtype_popupmenu_Callback(hObject, eventdata, handles)
-global out;
 contents    = cellstr(get(hObject,'String'));
-out.BP_type = contents{get(hObject,'Value')};
+handles.out.BP_type = contents{get(hObject,'Value')};
 
-if strcmp(out.BP_type,'Butterworth')
+if strcmp(handles.out.BP_type,'Butterworth')
     set(handles.BP_buttord_popupmenu,'enable','on');
-elseif ~strcmp(out.BP_type,'Butterworth')
+elseif ~strcmp(handles.out.BP_type,'Butterworth')
     set(handles.BP_buttord_popupmenu,'enable','off');
 end
+guidata(hObject,handles);
 
 function BPtype_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -390,8 +399,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function BP_HP_edit_Callback(hObject, eventdata, handles)
-global out;
-out.BP_HP_cutoff = str2double(get(hObject,'String'));
+handles.out.BP_HP_cutoff = str2double(get(hObject,'String'));
+guidata(hObject,handles);
 
 function BP_HP_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -399,8 +408,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function BP_LP_edit_Callback(hObject, eventdata, handles)
-global out;
-out.BP_LP_cutoff = str2double(get(hObject,'String'));
+handles.out.BP_LP_cutoff = str2double(get(hObject,'String'));
+guidata(hObject,handles);
 
 function BP_LP_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -408,9 +417,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function BP_buttord_popupmenu_Callback(hObject, eventdata, handles)
-global out;
 contents    = cellstr(get(hObject,'String'));
-out.butter_ord = contents{get(hObject,'Value')};
+handles.out.butter_ord = contents{get(hObject,'Value')};
+guidata(hObject,handles);
 
 function BP_buttord_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -424,8 +433,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function MC_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.MC = get(hObject,'Value');
+handles.out.MC = get(hObject,'Value');
+guidata(hObject,handles);
 
 
 
@@ -434,20 +443,20 @@ out.MC = get(hObject,'Value');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Motcens_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.motcens = get(hObject,'Value');
+handles.out.motcens = get(hObject,'Value');
 
-if out.motcens     == 1
+if handles.out.motcens     == 1
     set(handles.Motcens_FD_edit,'enable','on');
     set(handles.Motcens_DVARS_edit,'enable','on');
-elseif out.motcens == 0
+elseif handles.out.motcens == 0
     set(handles.Motcens_FD_edit,'enable','off');
     set(handles.Motcens_DVARS_edit,'enable','off');
 end
+guidata(hObject,handles);
 
 function Motcens_FD_edit_Callback(hObject, eventdata, handles)
-global out;
-out.motcens_FD_cutoff = str2double(get(hObject,'String'));
+handles.out.motcens_FD_cutoff = str2double(get(hObject,'String'));
+guidata(hObject,handles);
 
 function Motcens_FD_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -455,8 +464,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function Motcens_DVARS_edit_Callback(hObject, eventdata, handles)
-global out;
-out.motcens_DVARS_cutoff = str2double(get(hObject,'String'));
+handles.out.motcens_DVARS_cutoff = str2double(get(hObject,'String'));
+guidata(hObject,handles);
 
 function Motcens_DVARS_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -472,30 +481,30 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Motparpart_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.motpar_part = get(hObject,'Value');
+handles.out.motpar_part = get(hObject,'Value');
 
-if out.motpar_part     == 1
+if handles.out.motpar_part     == 1
     set(handles.Motparpart_t1_checkbox,'enable','on');
     set(handles.Motparpart_sqr_checkbox,'enable','on');
     set(handles.Motparpart_deriv_checkbox,'enable','on');
-elseif out.motpar_part == 0
+elseif handles.out.motpar_part == 0
     set(handles.Motparpart_t1_checkbox,'enable','off');
     set(handles.Motparpart_sqr_checkbox,'enable','off');
     set(handles.Motparpart_deriv_checkbox,'enable','off');
 end
+guidata(hObject,handles);
 
 function Motparpart_t1_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.motpart1_part    = get(hObject,'Value');
+handles.out.motpart1_part    = get(hObject,'Value');
+guidata(hObject,handles);
 
 function Motparpart_sqr_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.motparsqr_part   = get(hObject,'Value');
+handles.out.motparsqr_part   = get(hObject,'Value');
+guidata(hObject,handles);
 
 function Motparpart_deriv_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.motparderiv_part = get(hObject,'Value');
+handles.out.motparderiv_part = get(hObject,'Value');
+guidata(hObject,handles);
 
 
 
@@ -504,30 +513,30 @@ out.motparderiv_part = get(hObject,'Value');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Globpart_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.globsig_part = get(hObject,'Value');
+handles.out.globsig_part = get(hObject,'Value');
 
-if out.globsig_part     == 1
+if handles.out.globsig_part     == 1
     set(handles.Globpart_deriv_checkbox,'enable','on');
     set(handles.Globpart_GNI_checkbox,'enable','on');
     set(handles.Globpart_GCOR_checkbox,'enable','on');
-elseif out.globsig_part == 0
+elseif handles.out.globsig_part == 0
     set(handles.Globpart_deriv_checkbox,'enable','off');
     set(handles.Globpart_GNI_checkbox,'enable','off');
     set(handles.Globpart_GCOR_checkbox,'enable','off');
 end
+guidata(hObject,handles);
 
 function Globpart_deriv_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.globsigderiv_part = get(hObject,'Value');
+handles.out.globsigderiv_part = get(hObject,'Value');
+guidata(hObject,handles);
 
 function Globpart_GNI_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.globsig_calcGNI = get(hObject,'Value');
+handles.out.globsig_calcGNI = get(hObject,'Value');
+guidata(hObject,handles);
 
 function Globpart_GCOR_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.globsig_calcGCOR = get(hObject,'Value');
+handles.out.globsig_calcGCOR = get(hObject,'Value');
+guidata(hObject,handles);
 
 
 
@@ -536,27 +545,27 @@ out.globsig_calcGCOR = get(hObject,'Value');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function WMpart_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.WMsig_part = get(hObject,'Value');
+handles.out.WMsig_part = get(hObject,'Value');
 
-if out.WMsig_part == 1
+if handles.out.WMsig_part == 1
     set(handles.WMpart_scope_popupmenu,'enable','on');
     set(handles.WMpart_deriv_checkbox,'enable','on');
     set(handles.WMmaskfile_edit,'enable','on');
     set(handles.WMmaskfile_pushbutton,'enable','on');
     set(handles.WMmaskspace_popupmenu,'enable','on');
-elseif out.WMsig_part == 0
+elseif handles.out.WMsig_part == 0
     set(handles.WMpart_scope_popupmenu,'enable','off');
     set(handles.WMpart_deriv_checkbox,'enable','off');
     set(handles.WMmaskfile_edit,'enable','off');
     set(handles.WMmaskfile_pushbutton,'enable','off');
     set(handles.WMmaskspace_popupmenu,'enable','off');
 end
+guidata(hObject,handles);
 
 function WMpart_scope_popupmenu_Callback(hObject, eventdata, handles)
-global out;
 contents         = cellstr(get(hObject,'String'));
-out.WMmask_scope = contents{get(hObject,'Value')};
+handles.out.WMmask_scope = contents{get(hObject,'Value')};
+guidata(hObject,handles);
 
 function WMpart_scope_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -564,8 +573,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function WMpart_deriv_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.WMsigderiv_part = get(hObject,'Value');
+handles.out.WMsigderiv_part = get(hObject,'Value');
+guidata(hObject,handles);
 
 
 
@@ -574,31 +583,33 @@ out.WMsigderiv_part = get(hObject,'Value');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Ventpart_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.ventsig_part = get(hObject,'Value');
+handles.out.ventsig_part = get(hObject,'Value');
 
-if out.ventsig_part == 1
+if handles.out.ventsig_part == 1
     set(handles.Ventpart_deriv_checkbox,'enable','on');
     set(handles.Ventmaskfile_edit,'enable','on');
     set(handles.Ventmaskfile_pushbutton,'enable','on');
     set(handles.Ventmaskspace_popupmenu,'enable','on');
-elseif out.ventsig_part == 0
+elseif handles.out.ventsig_part == 0
     set(handles.Ventpart_deriv_checkbox,'enable','off');
     set(handles.Ventmaskfile_edit,'enable','off');
     set(handles.Ventmaskfile_pushbutton,'enable','off');
     set(handles.Ventmaskspace_popupmenu,'enable','off');
 end
+guidata(hObject,handles);
 
 function Ventpart_deriv_checkbox_Callback(hObject, eventdata, handles)
-global out;
-out.ventsigderiv_part = get(hObject,'Value');
+handles.out.ventsigderiv_part = get(hObject,'Value');
+guidata(hObject,handles);
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Start_pushbutton_Callback(hObject, eventdata, handles)
-global out;
+out = handles.out;
 
 % Check whether inputs have been specified
 if ~isfield(out,'subs')
@@ -790,7 +801,7 @@ if use_parfor
                 use_parfor = false;
             end
         end
-    catch
+    catch %#ok<*CTCH>
         if matlabpool('size') == 0 %#ok<*DPOOL>
             num_par_workers = str2double(inputdlg(sprintf('The Parallel Computing Toolbox was found on your system.\n\nEnter the number of workers you want to use (enter 1 to not use the PCT).\n\nNote: this must be <= the number of cores'),'PCT Workers',2));
             if num_par_workers > 12
@@ -1038,8 +1049,7 @@ if use_parfor
 end
 
 fclose(logfile_fid);
-out_data = out; %#ok<*NASGU>
-save(out.outname,'out_data');
+save(out.outname,'out');
 set(handles.Start_pushbutton,'enable','on');
 
 
